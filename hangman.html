@@ -2,16 +2,9 @@
 Spânzurătoare
 Se introduce un cuvânt. Să se implementeze ghicirea lui conform regulilor jocului.
 -->
-<!-- Template taken from Bootstrap -->
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
     <title>Hangman</title>
   </head>
   <body>
@@ -19,39 +12,132 @@ Se introduce un cuvânt. Să se implementeze ghicirea lui conform regulilor jocu
 	<div align="center">
 		<button onclick="addLettersCells()">Start Game</button>
 		<div id=letters>
+		<br>
 		</div>
 	</div>
-
 	<script>
-
-	// we read the word
-	var word = window.prompt("Please insert the word to be guessed");
-	alert(word + " " + typeof(word));
-	alert(word.length);
-	// we display word.length empty text cells
+	// we enter the word to be found
+	var word = window.prompt("Please enter the word to be found.\nObservation: The word must have minimum 2 letters.");
+	// we make sure that a word is entered
+	while (word.length < 2 || !word.match(/^[a-z]+$/i)) {
+		word = window.prompt("Please enter the word to be found.\nObservation: The word must have minimum 2 letters.");
+	}
+	// we enter the number of tries
+	var numTries = Number(window.prompt("Please enter the number of tries for finding the word.\nObservation: The number of tries >= word's number of letters."));
+	// we make sure that a number is entered
+	while (numTries < word.length || isNaN(numTries)) {
+			numTries = Number(window.prompt("Please enter the number of tries for finding the word.\nObservation: The number of tries >= word's number of letters."));
+	}
 	function addLettersCells() {
+		// we add "word.length" empty text cells in which will be displayed the letters found
+		addParagraph("Letters of the word to be found:");
 		for (let i = 1; i <= word.length; ++i) {
-			$("#letters").append(`
-				<input id="letter` + i + `">
-			`);
+			let cell = document.createElement("input");
+			letters.append(cell);
+			cell.id = i;
+			cell.setAttribute("readonly","readonly");
+			cell.setAttribute("size","1");
+			cell.style.textAlign = "center";
 		}
-		$("#letters").append(`
-				<button onclick="guessLetter()">Check</button>
-		`);
+		addLineBreak();
+		addLineBreak();
+		// we add text box for entering the chosen letter
+		addParagraph("Enter letter to be checked:");
+		let checkLetter = document.createElement("input");
+		letters.append(checkLetter);
+		checkLetter.id = word.length + 1;
+		checkLetter.setAttribute("size","1");
+		checkLetter.setAttribute("maxlength", "1");
+		checkLetter.style.textAlign = "center";
+		addLineBreak();
+		addLineBreak();
+		// we add a button used for the checking process of the letter entered
+		let buttonCheck = document.createElement("button");
+		letters.append(buttonCheck);
+		buttonCheck.textContent = "Check";
+		buttonCheck.setAttribute("onclick","findLetter()");
+		alert("Be careful!!!\nYou have " + numTries + " tries to find the word.");
 	}
-	// we verify each letter read
-	function guessLetter() {
-		for (let i = 1; i <= word.length; ++i) {
+	var numLetters = word.length;
+	var countEnteredLetters = 0;
+	var countTries = numTries;
+	function findLetter() {
+		// we verify each letter read if exists in the word to be found
+		let checkLetterId = document.getElementById(word.length + 1);
+		let foundLetter = 0;
+		// we check if a letter was entered
+		if (checkLetterId.value.length == 1 && checkLetterId.value.match(/^[a-z]+$/i)) {
+			++countEnteredLetters;
+			// after the first letter is entered we add a text box for storing the entered letters
+			if (countEnteredLetters == 1) {
+				addParagraph("Entered letters:");
+				let enteredLetters = document.createElement("input");
+				letters.append(enteredLetters);
+				enteredLetters.id = "checkedLet";
+				enteredLetters.setAttribute("readonly","readonly");
+				enteredLetters.setAttribute("size","20");
+				enteredLetters.style.textAlign = "center";
+				enteredLetters.setAttribute("value"," ");
+			}
+			for (let i = 0; i < word.length; ++i) {
+				let input = document.getElementById(i + 1);
+				if (checkLetterId.value == word[i]) {
+					foundLetter = 1;
+					input.value = checkLetterId.value;
+					--numLetters;
+				}
+			}
+			// we display a message depending if the letter was found or not
+			if (foundLetter == 1) {
+				alert("Correct!");
+			} else {
+				alert("Wrong!");
+			}
+			//	we add the entered letter to the array of entered letters
+			if (countEnteredLetters == numTries || numLetters == 0) {
+				checkedLet.value += checkLetterId.value;
+			} else {
+				checkedLet.value += checkLetterId.value + ",";
+			}
+			// we reinitialize the value of checkLetterId with ""
+			checkLetterId.value = "";
+			// we verify if the word was found or not
+			// we count how many tries have left
+			if (numLetters == 0) {
+				alert("Congratulations!!! You've found the word :)\nIt is: " + word);
+				newGame();
+			} else {
+				--countTries;
+				if (countTries > 0) {
+					alert("You have " + countTries + " try(s) left.");
+				} else {
+					alert("Unfortunately you haven't found the word :(\nIt is: " + word + "\nGood luck next time!");
+					newGame();
+				}
+			}
+		} else {
+			alert("Please enter a letter.");
+			checkLetterId.value = "";
 		}
 	}
-	// we verify if the word was guess or not
-	// we have 7 tries (1 - head, 1 - body, 2 - arms, 2 - legs, 1 - last chance) for finding the word
-	
+	function newGame(){
+		addLineBreak();
+		addLineBreak();
+		// we add a button for starting a new game
+		// we are refreshing the page
+		let buttonNewGame = document.createElement("button");
+		letters.append(buttonNewGame);
+		buttonNewGame.textContent = "New Game";
+		buttonNewGame.setAttribute("onclick","window.location.reload()");
+	}
+	function addLineBreak(){
+		let newLine = document.createElement("br");
+		letters.append(newLine);
+	}
+	function addParagraph(paragraphContent){
+		let paragraph = document.createElement("p");
+		letters.append(paragraph);
+		paragraph.textContent = paragraphContent;
+	}
 	</script>
-	
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </html>
