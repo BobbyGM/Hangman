@@ -1,6 +1,6 @@
 <!--
-Spânzurătoare
-Se introduce un cuvânt. Să se implementeze ghicirea lui conform regulilor jocului.
+Hangman
+A word is entered. Word guessing must be implemented according to the rules of the game.
 -->
 <!doctype html>
 <html lang="en">
@@ -9,115 +9,175 @@ Se introduce un cuvânt. Să se implementeze ghicirea lui conform regulilor jocu
   </head>
   <body>
 	<h1 style="text-align: center">Hangman</h1>
+	<div align="left">
+		<input style="text-align: center" id="wordToBeFound" size = "20" placeholder = "word to be found">
+		<button onclick="inputWord()">Set word</button>
+		<br>
+		<input style="text-align: center" type="number" id="numberOfTries" placeholder= "number of tries" min = "0">
+		<button onclick="inputNumberOfTries()">Set number of tries</button>
+		<br>
+		<br>
 	<div align="center">
 		<button onclick="addLettersCells()">Start Game</button>
 		<div id=letters>
 		<br>
 		</div>
 	</div>
-	<script>
-	// we enter the word to be found
-	var word = window.prompt("Please enter the word to be found.\nObservation: The word must have minimum 2 letters.");
-	// we make sure that a word is entered
-	while (word.length < 2 || !word.match(/^[a-z]+$/i)) {
-		word = window.prompt("Please enter the word to be found.\nObservation: The word must have minimum 2 letters.");
+</html>
+<script>
+	alert("Please enter the word to be found and the number of tries.");
+	var word = "";
+	var numLetters = word.length;
+	function inputWord() {
+		// we enter the word to be found
+		let wordTBF = document.getElementById("wordToBeFound");
+		// we make sure that a word is entered
+		if (wordTBF.value.length < 2 || !wordTBF.value.match(/^[a-z]+$/i)) {
+			wordTBF.value = "";
+			alert("Observation: The word must have minimum 2 letters and must not contain numbers.");
+			wordTBF = document.getElementById("wordToBeFound");
+		}
+		word = wordTBF.value;
+		numLetters = word.length;
 	}
-	// we enter the number of tries
-	var numTries = Number(window.prompt("Please enter the number of tries for finding the word.\nObservation: The number of tries >= word's number of letters."));
-	// we make sure that a number is entered
-	while (numTries < word.length || isNaN(numTries)) {
-			numTries = Number(window.prompt("Please enter the number of tries for finding the word.\nObservation: The number of tries >= word's number of letters."));
+	var numTries = 0;
+	var countTries = 0;
+	function inputNumberOfTries() {
+		// we enter the number of tries
+		let numberOT = document.getElementById("numberOfTries");
+		// we make sure that a number is entered
+		if (numberOT.value < word.length) {
+			numberOT.value = "";
+			alert("Observation: The number of tries >= word's number of letters and you should not enter letters.");
+			numberOT = document.getElementById("numberOfTries");
+		}
+		numTries = numberOT.value;
+		countTries = numberOT.value;
 	}
 	function addLettersCells() {
-		// we add "word.length" empty text cells in which will be displayed the letters found
-		addParagraph("Letters of the word to be found:");
-		for (let i = 1; i <= word.length; ++i) {
-			let cell = document.createElement("input");
-			letters.append(cell);
-			cell.id = i;
-			cell.setAttribute("readonly","readonly");
-			cell.setAttribute("size","1");
-			cell.style.textAlign = "center";
+		if (word == "") {
+			alert("Please enter the word.");
+			inputWord();
+		} else if (numTries == 0) {
+			alert("Please enter the number of tries.");
+			inputNumberOfTries();
+		} else {
+			// we add "word.length" empty text cells in which will be displayed the letters found
+			addParagraph("Letters of the word to be found:");
+			addTextCells();
+			addLineBreak();
+			addLineBreak();
+			// we add text box for entering the chosen letter
+			addParagraph("Enter letter to be checked:");
+			let checkLetter = document.createElement("input");
+			textBoxToLetters(checkLetter, word.length + 1, 1);
+			checkLetter.setAttribute("maxlength", "1");
+			addLineBreak();
+			addLineBreak();
+			// we add a button used for the checking process of the letter entered
+			let buttonCheck = document.createElement("button");
+			letters.append(buttonCheck);
+			buttonCheck.textContent = "Check";
+			buttonCheck.setAttribute("onclick","findLetter()");
+			alert("Be careful!!!\nYou have " + numTries + " tries to find the word.");
 		}
-		addLineBreak();
-		addLineBreak();
-		// we add text box for entering the chosen letter
-		addParagraph("Enter letter to be checked:");
-		let checkLetter = document.createElement("input");
-		letters.append(checkLetter);
-		checkLetter.id = word.length + 1;
-		checkLetter.setAttribute("size","1");
-		checkLetter.setAttribute("maxlength", "1");
-		checkLetter.style.textAlign = "center";
-		addLineBreak();
-		addLineBreak();
-		// we add a button used for the checking process of the letter entered
-		let buttonCheck = document.createElement("button");
-		letters.append(buttonCheck);
-		buttonCheck.textContent = "Check";
-		buttonCheck.setAttribute("onclick","findLetter()");
-		alert("Be careful!!!\nYou have " + numTries + " tries to find the word.");
 	}
-	var numLetters = word.length;
 	var countEnteredLetters = 0;
-	var countTries = numTries;
+	var arrayEnteredLetters = [];
 	function findLetter() {
-		// we verify each letter read if exists in the word to be found
+		// we verify each letter entered if exists in the word to be found
 		let checkLetterId = document.getElementById(word.length + 1);
-		let foundLetter = 0;
 		// we check if a letter was entered
 		if (checkLetterId.value.length == 1 && checkLetterId.value.match(/^[a-z]+$/i)) {
-			++countEnteredLetters;
-			// after the first letter is entered we add a text box for storing the entered letters
-			if (countEnteredLetters == 1) {
-				addParagraph("Entered letters:");
-				let enteredLetters = document.createElement("input");
-				letters.append(enteredLetters);
-				enteredLetters.id = "checkedLet";
-				enteredLetters.setAttribute("readonly","readonly");
-				enteredLetters.setAttribute("size","20");
-				enteredLetters.style.textAlign = "center";
-				enteredLetters.setAttribute("value"," ");
-			}
-			for (let i = 0; i < word.length; ++i) {
-				let input = document.getElementById(i + 1);
-				if (checkLetterId.value == word[i]) {
-					foundLetter = 1;
-					input.value = checkLetterId.value;
-					--numLetters;
+			// we check if the letter was not already entered
+			if (alreadyEntered(checkLetterId.value) == 0) {
+				++countEnteredLetters;
+				// after the first letter is entered we add a text box for displaying the entered letters
+				if (countEnteredLetters == 1) {
+					addParagraph("Entered letters:");
+					let enteredLetters = document.createElement("input");
+					textBoxToLetters(enteredLetters, "checkedLet", 20);
+					enteredLetters.setAttribute("readonly","readonly");
+					enteredLetters.setAttribute("value"," ");
 				}
-			}
-			// we display a message depending if the letter was found or not
-			if (foundLetter == 1) {
-				alert("Correct!");
-			} else {
-				alert("Wrong!");
-			}
-			//	we add the entered letter to the array of entered letters
-			if (countEnteredLetters == numTries || numLetters == 0) {
-				checkedLet.value += checkLetterId.value;
-			} else {
-				checkedLet.value += checkLetterId.value + ",";
-			}
-			// we reinitialize the value of checkLetterId with ""
-			checkLetterId.value = "";
-			// we verify if the word was found or not
-			// we count how many tries have left
-			if (numLetters == 0) {
-				alert("Congratulations!!! You've found the word :)\nIt is: " + word);
-				newGame();
-			} else {
-				--countTries;
-				if (countTries > 0) {
-					alert("You have " + countTries + " try(s) left.");
+				// we verify if the letter entered exists in the word to be found
+				// we display a message depending if the letter was found or not
+				if (verifyLetter(checkLetterId.value) == 1) {
+					alert("Correct!");
 				} else {
-					alert("Unfortunately you haven't found the word :(\nIt is: " + word + "\nGood luck next time!");
-					newGame();
+					alert("Wrong!");
 				}
+				//	we add the entered letter to the array of displayed entered letters
+				if (countEnteredLetters == numTries || numLetters == 0) {
+					checkedLet.value += checkLetterId.value;
+				} else {
+					checkedLet.value += checkLetterId.value + ",";
+				}
+				// we reinitialize the value of checkLetterId with ""
+				checkLetterId.value = "";
+				// we verify if the word was found or not
+				// we count how many tries have left
+				verifyWordCountTries();
+			} else {
+				alert("This letter was already entered. Please choose another one.");
+				checkLetterId.value = "";
 			}
 		} else {
 			alert("Please enter a letter.");
 			checkLetterId.value = "";
+		}
+	}
+	function addTextCells() {
+		let wordLength = Array.from(word);
+		wordLength.forEach(function(element, index){
+			let cell = document.createElement("input");
+			textBoxToLetters(cell, index + 1, 1);
+			cell.setAttribute("readonly","readonly");
+		})
+	}
+	function textBoxToLetters(variable, id, size) {
+		letters.append(variable);
+		variable.id = id;
+		variable.setAttribute("size", size);
+		variable.style.textAlign = "center";
+	}
+	function alreadyEntered(letter) {
+		let alreadyEnteredLetter = 0;
+		arrayEnteredLetters.forEach(function(element){
+			if (letter == element) {
+				alreadyEnteredLetter = 1;
+			}
+		})
+		if (alreadyEnteredLetter == 0) {
+			arrayEnteredLetters.push(letter);
+		}
+		return alreadyEnteredLetter;
+	}
+	function verifyLetter(letter) {
+		let foundLetter = 0;
+		let wordLength = Array.from(word);
+		wordLength.forEach(function(element, index){
+			let input = document.getElementById(index + 1);
+			if (letter == element) {
+				foundLetter = 1;
+				input.value = letter;
+				--numLetters;
+			}
+		})
+		return foundLetter;
+	}
+	function verifyWordCountTries() {
+		if (numLetters == 0) {
+			alert("Congratulations!!! You've found the word :)\nIt is: " + word);
+			newGame();
+		} else {
+			--countTries;
+			if (countTries > 0) {
+				alert("You have " + countTries + " try(s) left.");
+			} else {
+				alert("Unfortunately you haven't found the word :(\nIt is: " + word + "\nGood luck next time!");
+				newGame();
+			}
 		}
 	}
 	function newGame(){
@@ -139,5 +199,4 @@ Se introduce un cuvânt. Să se implementeze ghicirea lui conform regulilor jocu
 		letters.append(paragraph);
 		paragraph.textContent = paragraphContent;
 	}
-	</script>
-</html>
+</script>
